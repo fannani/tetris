@@ -15,8 +15,9 @@ export default class Game extends Phaser.State {
 
         this.offset = 5;
 
-        this.spawn = [[1,0],[1,1]];
+        this.spawn = [[0,1,0],[1,1,1],[0,0,0]];
         this.y = 0;
+        this.downState = false;
         this.space = new Array(this.blockHeight);
         for(var i = 0;i<this.space.length;i++){
             this.space[i] = new Array(this.blockWidth);
@@ -44,6 +45,11 @@ export default class Game extends Phaser.State {
 
         this.timer.loop(500, this.blockCounter.bind(this), this);
         this.timer.start();
+
+        this.upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
+        this.downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+        this.leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        this.rightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
     }
     createNewBlock(){
         this.y = 0;
@@ -60,7 +66,23 @@ export default class Game extends Phaser.State {
         }
     }
     update(){
+        console.log(this.downState);
+        if(this.rightKey.isUp && this.leftKey.isUp){
+            this.downState = false;
+        }
+        if (this.rightKey.isDown && !this.downState) {
+            this.downState = true;
+            for(var i = 0;i<this.sprite.length;i++){
+                this.sprite[i].x += this.blockSize;
 
+            }
+        } else if(this.leftKey.isDown && !this.downState){
+            this.downState = true;
+            for(var i = 0;i<this.sprite.length;i++){
+                this.sprite[i].x -= this.blockSize;
+
+            }
+        }
     }
     blockCounter() {
         var empty = false;
