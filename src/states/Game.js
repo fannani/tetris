@@ -16,12 +16,14 @@ export default class Game extends Phaser.State {
         this.offset = 5;
 
         this.spawn = [[0,1,0],[1,1,1],[0,0,0]];
+        this.x = 0;
         this.y = 0;
         this.downState = false;
-        this.space = new Array(this.blockHeight);
-        for(var i = 0;i<this.space.length;i++){
-            this.space[i] = new Array(this.blockWidth);
+        this.area = [];
+        for(var i = 0;i<this.blockHeight;i++){
+            this.area.push(new Array(this.blockWidth).fill(0));
         }
+
 
     }
 
@@ -55,68 +57,87 @@ export default class Game extends Phaser.State {
         this.y = 0;
         this.sprite = [];
 
-        for(var i = 0;i<this.spawn.length;i++){
-            for(var a = 0;a<this.spawn[i].length;a++){
-                if(this.spawn[i][a] == 1){
+        this.spawn.forEach(function(item,i){
+            item.forEach(function(data,a){
+                if(data == 1){
                     var y = this.padding + this.blockSize * i;
                     var x = this.padding + this.blockSize * a;
                     this.sprite.push(this.add.sprite(x, y, this.blockGraph));
                 }
-            }
-        }
+            }.bind(this));
+        }.bind(this));
     }
     update(){
         console.log(this.downState);
-        if(this.rightKey.isUp && this.leftKey.isUp){
+        if(this.rightKey.isUp && this.leftKey.isUp && this.upKey.isUp){
             this.downState = false;
         }
         if (this.rightKey.isDown && !this.downState) {
             this.downState = true;
-            for(var i = 0;i<this.sprite.length;i++){
+            this.x++;
+            this.sprite.forEach(function(item,i) {
                 this.sprite[i].x += this.blockSize;
 
-            }
+                console.log(this.x);
+
+            }.bind(this));
         } else if(this.leftKey.isDown && !this.downState){
             this.downState = true;
-            for(var i = 0;i<this.sprite.length;i++){
+            this.x--;
+            this.sprite.forEach(function(item,i){
                 this.sprite[i].x -= this.blockSize;
 
-            }
+            }.bind(this));
+        } else if(this.upKey.isDown && !this.downState){
+            this.rotateBlock();
         }
+    }
+    roteteBlock(){
+
     }
     blockCounter() {
         var empty = false;
-        if(this.y + this.spawn.length < this.blockHeight){
+
+        if(this.y + this.spawn.length <= this.blockHeight){
             empty = true;
         }
         if(empty){
-            for(var i = 0;i<this.sprite.length;i++){
+            this.sprite.forEach(function(item,i){
                 this.sprite[i].y += this.blockSize;
-            }
+            }.bind(this));
             this.y++;
         } else {
-            for(var i = 0;i<this.sprite.length;i++){
+            this.sprite.forEach(function(item,i){
                 this.sprite[i].destroy();
-            }
-            for(var i = 0;i<this.spawn.length;i++) {
-                for (var a = 0; a < this.spawn[i].length; a++) {
-                    if (this.spawn[i][a] == 1) {
-                        var graphics = game.add.graphics( this.padding + (a * this.blockSize),this.padding + ((this.y+i) * this.blockSize));
-                        graphics.beginFill(0xFFFFFF);
-                        graphics.lineStyle(0, 0xffffff, 1);
-                        graphics.moveTo(0,0);
-                        graphics.lineTo(0, this.blockSize);
-                        graphics.lineTo(this.blockSize, this.blockSize);
-                        graphics.lineTo(this.blockSize, 0);
-                        graphics.endFill();
-
-                    }
-                }
-            }
+            }.bind(this));
+            console.log(this.x);
+            this.spawn.forEach(function(item,row){
+               item.forEach(function(data,col){
+                   if(data == 1){
+                       this.area[row + this.y ][col+this.x] = 1;
+                   }
+               }.bind(this));
+            }.bind(this));
+            console.table(this.area);
+            this.drawArea();
             this.createNewBlock();
         }
+    }
 
+    drawArea(){
+        this.spawn.forEach(function(item,i){
+            item.forEach(function(data,a){
+                if(data == 1){
+                    var y = this.padding + this.blockSize * (this.y+i);
+                    var x = this.padding + this.blockSize * (this.x+a);
+                    var graphics = this.add.graphics(x, y);
 
-
+                    graphics.beginFill(0xFFFFFF);
+                    graphics.moveTo(0,0);
+                    graphics.drawRect(0,0,this.blockSize,this.blockSize);
+                    graphics.endFill();
+                }
+            }.bind(this));
+        }.bind(this));
     }
 }
